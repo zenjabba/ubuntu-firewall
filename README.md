@@ -2,6 +2,10 @@
 
 This repository contains a script to configure an Ubuntu server as a NAT firewall with DNS and NTP services.
 
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 ## Prerequisites
 
 - Fresh Ubuntu server installation
@@ -21,6 +25,7 @@ This repository contains a script to configure an Ubuntu server as a NAT firewal
 - Support for VLAN interfaces
 - Automatic handling of systemd-resolved
 - Non-interactive installation
+- SSH brute force protection with fail2ban
 
 ## Usage
 
@@ -104,6 +109,7 @@ network:
    - Installs and configures NTP for time service
    - Disables systemd-resolved to prevent conflicts
    - Sets up Google DNS as upstream servers
+   - Configures fail2ban for SSH protection
 
 4. Firewall Configuration:
    - Sets up NAT using iptables
@@ -128,6 +134,7 @@ The script includes several performance optimizations for 10G networking:
 - Make sure to change the default SSH port if needed.
 - Consider adding rules for any additional services you need to allow through the firewall.
 - The script disables systemd-resolved to prevent DNS conflicts.
+- fail2ban is configured to protect against SSH brute force attacks on the WAN interface.
 
 ## Troubleshooting
 
@@ -136,4 +143,5 @@ If you encounter any issues:
 2. Verify that the interfaces are up and have IP addresses
 3. Check the system logs for any service-related errors
 4. Ensure that port 53 is not being used by another service
-5. Verify that the kernel modules are loaded correctly 
+5. Verify that the kernel modules are loaded correctly
+6. Check fail2ban status with `fail2ban-client status` 
