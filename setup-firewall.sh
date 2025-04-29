@@ -145,7 +145,49 @@ sysctl -p || {
 
 # Install required packages
 echo "Installing required packages..."
-apt-get install -y iptables-persistent dnsmasq ntp
+apt-get install -y iptables-persistent dnsmasq ntp fail2ban
+
+# Configure fail2ban
+echo "Configuring fail2ban..."
+cat > /etc/fail2ban/jail.local << EOF
+[DEFAULT]
+# Ban hosts for 1 hour
+bantime = 3600
+# Retry window of 10 minutes
+findtime = 600
+# Allow 3 retries
+maxretry = 3
+# Ban on all interfaces
+banaction = iptables-allports
+# Ignore private networks
+ignoreip = 127.0.0.1/8 ::1 192.168.0.0/16 10.0.0.0/8 172.16.0.0/12
+
+[sshd]
+enabled = true
+port = ssh
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+findtime = 300
+bantime = 3600
+# Only monitor the WAN interface
+interface = $WAN_BASE_IFACE
+
+[sshd-ddos]
+enabled = true
+port = ssh
+filter = sshd-ddos
+logpath = /var/log/auth.log
+maxretry = 3
+findtime = 300
+bantime = 3600
+# Only monitor the WAN interface
+interface = $WAN_BASE_IFACE
+EOF
+
+# Start and enable fail2ban
+systemctl enable fail2ban
+systemctl start fail2ban
 
 # Stop and disable systemd-resolved
 echo "Stopping and disabling systemd-resolved..."
@@ -253,6 +295,6 @@ iptables -A FORWARD -i "$LAN_BASE_IFACE" -o "$WAN_BASE_IFACE" -j ACCEPT
 echo "Saving iptables rules..."
 netfilter-persistent save
 
-echo "Firewall, DNS, and NTP configuration complete!"
+echo "Firewall, DNS, NTP, and fail2ban configuration complete!"
 echo "Please make sure to configure your network interfaces in /etc/netplan/*.yaml"
 echo "Reboot the system to ensure all changes take effect" 
